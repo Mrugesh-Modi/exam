@@ -1,0 +1,43 @@
+pip install -U plotly
+
+import json
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly 
+
+import plotly 
+
+UttarPradesh = json.load(open("UttarPradesh.geojson", 'r'))
+
+state_id_map = {}
+for i in UttarPradesh['features']:
+   i["id"]=i["properties"]["d_id_11"]
+   state_id_map[i["properties"]["Name"]] = i["id"]
+state_id_map 
+
+
+#To read the csv file of district of UttarPradesh
+df=pd.read_csv("up.csv")
+
+
+df["id"] = df["District"].apply(lambda x: state_id_map[x])
+df.head()
+
+df["Total Cases"].plot()
+
+df["DensityScale"] = np.log10(df["Total Cases"])
+df["DensityScale"].plot()
+
+
+fig = px.choropleth(
+    df,
+    locations="id",
+    geojson=india_states,
+    color="DensityScale",
+    hover_name="District",
+    hover_data=["Total Cases"],
+    title="Total Cases in Utter Pradesh",
+)
+fig.update_geos(fitbounds="locations", visible=False)
+fig.show()
