@@ -1,0 +1,21 @@
+!pip install folium
+
+import folium
+import pandas as pd
+import numpy as np
+import json
+
+df=pd.read_excel('/content/GujaratData.xlsx')
+
+df.head()
+
+world_map=folium.Map(location=[22.9868, 87.8550],zoom_start=6.8)
+
+india_states=json.load(open("/content/india_district_1.geojson",'r'))
+
+folium.Choropleth(geo_data=india_states, data=df, columns=['DISTRICT','CONFIRMED'],
+                  key_on='feature.properties.NAME_2', fill_color='YlOrRd', fill_opacity=0.5, line_opacity=0.2, 
+                  legend_name='COVID-19 CASES IN GUJARAT').add_to(world_map)
+              
+              
+world_map.save('map.html')
