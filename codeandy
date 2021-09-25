@@ -1,0 +1,33 @@
+if(ContextCompat.checkSelfPermission(MainActivity.this,Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+{
+	if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+	Manifest.permission.ACCESS_COARSE_LOCATION))
+	{
+		fusedLocationClient.getLastLocation().addOnSuccessListener(this, new 		OnSuccessListener<Location>() 
+		{
+			@Override
+			public void onSuccess(Location location) 
+			{
+				if (location != null) 
+				{
+	
+					Double lat=location.getLatitude();
+					Double longi=location.getLongitude();
+				txtshowlocation.setText("Latitude="+lat+"\nLongitude"+longi);
+				}
+				else
+				{	
+					
+				}
+			}
+
+		}
+		});
+	}
+}
+else
+{
+	ActivityCompat.requestPermissions(MainActivity.this, new
+String[{Manifest.permission.ACCESS_COARSE_LOCATION},MY_PERMISSIONS_REQUEST_ACCESS_C
+OARSE_LOCATION);
+}
