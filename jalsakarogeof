@@ -19,3 +19,5 @@ folium.Choropleth(geo_data=india_states, data=df, columns=['DISTRICT','CONFIRMED
               
               
 world_map.save('map.html')
+
+https://www.analyticsvidhya.com/blog/2020/06/guide-geospatial-analysis-folium-python/
