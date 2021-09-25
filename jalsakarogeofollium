@@ -1,0 +1,142 @@
+pip install geopandas
+
+import numpy as np
+import pandas as pd
+
+# For plotting maps
+import folium
+
+# For Regular Expressions
+import re
+
+# For working with geographical data
+import geopandas
+
+# For plotting in python
+import matplotlib
+import matplotlib.pyplot as plt
+
+
+
+df_covid=pd.read_csv('complete.csv')
+df_covid.head()
+
+
+india_geojson=geopandas.read_file('india.json')
+india_geojson.head()
+
+india_geojson.plot()
+
+df_covid.isnull().sum()
+
+
+df_covid.dtypes
+
+
+df_covid['Date']=pd.to_datetime(df_covid['Date']).apply(lambda x: x - pd.DateOffset(days=1))
+
+
+df_covid['Name of State / UT'].unique()
+
+df_covid['Name of State / UT']=df_covid['Name of State / UT'].apply(lambda x: re.sub('Union Territory of ','',x))
+df_covid['Name of State / UT'].replace('Telengana','Telangana',inplace=True)
+df_covid['Name of State / UT'].replace('Dadar Nagar Haveli','Dadra and Nagar Haveli',inplace=True)
+
+
+id_dict={'Andaman and Nicobar Islands': '0',
+ 'Arunachal Pradesh': '1',
+ 'Assam': '2',
+ 'Bihar': '3',
+ 'Chandigarh': '4',
+ 'Chhattisgarh': '5',
+ 'Dadra and Nagar Haveli': '6',
+ 'Daman and Diu': '7',
+ 'Goa': '8',
+ 'Gujarat': '9',
+ 'Haryana': '10',
+ 'Himachal Pradesh': '11',
+ 'Jharkhand': '12',
+ 'Karnataka': '13',
+ 'Kerala': '14',
+ 'Lakshadweep': '15',
+ 'Madhya Pradesh': '16',
+ 'Maharashtra': '17',
+ 'Manipur': '18',
+ 'Meghalaya': '19',
+ 'Mizoram': '20',
+ 'Nagaland': '21',
+ 'Delhi': '22',
+ 'Puducherry': '23',
+ 'Punjab': '24',
+ 'Rajasthan': '25',
+ 'Sikkim': '26',
+ 'Tamil Nadu': '27',
+ 'Telangana': '28',
+ 'Tripura': '29',
+ 'Uttar Pradesh': '30',
+ 'Uttarakhand': '31',
+ 'West Bengal': '32',
+ 'Odisha': '33',
+ 'Andhra Pradesh': '34',
+ 'Jammu and Kashmir': '35',
+ 'Ladakh': '36'}  
+ 
+ df_covid['state_id']=df_covid['Name of State / UT'].map(id_dict)
+ 
+ df_covid['Active Cases']=df_covid['Total Confirmed cases']-(df_covid['Cured/Discharged/Migrated']+df_covid['Death'])
+df_covid.head()
+
+
+bins=np.linspace(min(df_covid['Active Cases']),max(df_covid['Active Cases']),11)
+bins
+
+
+# Coloring states and UTs with active COVID-19 cases
+df_covid['color']=pd.cut(df_covid['Active Cases'],bins,labels=['#FFEBEB','#F8D2D4','#F2B9BE','#EBA1A8','#E58892','#DE6F7C','#D85766','#D13E50','#CB253A','#C50D24'],include_lowest=False)
+# Coloring states and UTs with no active cases but previously had
+df_covid['color'].replace(np.nan,'#32CD32',inplace=True)
+
+
+df_covid=df_covid[['Date','state_id','color']]
+df_covid.head()
+
+
+for date in df_covid['Date'].unique():
+    diff=set([str(i) for i in range(37)])-set(df_covid[df_covid['Date']==date]['state_id'])
+    for i in diff:
+      df_covid=pd.concat([df_covid,pd.DataFrame([[date,'#0073CF',i]],columns=['Date','color','state_id'])],ignore_index=True)
+df_covid.sort_values('Date',inplace=True)
+
+
+
+df_covid['Date']=(df_covid['Date'].astype(int)// 10**9).astype('U10')
+covid_dict={}
+for i in df_covid['state_id'].unique():
+    covid_dict[i]={}
+    for j in df_covid[df_covid['state_id']==i].set_index(['state_id']).values:   
+        covid_dict[i][j[0]]={'color':j[1],'opacity':0.7}
+        
+        
+        
+india_geojson['state_id']=india_geojson['st_nm'].map(id_dict)
+india_geojson.drop(columns='st_nm',inplace=True)
+
+
+
+
+
+from folium.plugins import TimeSliderChoropleth
+
+
+fig6=Figure(height=850,width=1000)
+m6 = folium.Map([24, 84], tiles='cartodbpositron', zoom_start=5)
+fig6.add_child(m6)
+
+g = TimeSliderChoropleth(
+    india_geojson.set_index('state_id').to_json(),
+    styledict=covid_dict
+).add_to(m6)
+m6
+
+
+india_geojson.head()
